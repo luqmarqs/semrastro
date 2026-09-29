@@ -1,0 +1,8 @@
+# Finais de linha: LF no repositorio; scripts de shell SEMPRE LF (CRLF quebra no macOS/Linux)
+* text=auto eol=lf
+*.sh text eol=lf
+AppRun text eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.ico binary
+*.icns binary
