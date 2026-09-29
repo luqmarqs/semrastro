@@ -1,0 +1,48 @@
+# Em todo push e pull request: compila e testa o que da para testar rapido.
+#   - Windows: SemRastro.exe (WinForms) + bateria de remocao de metadados
+#   - Linux:   compila o projeto Avalonia (macOS/Linux) para pegar erro de codigo cedo
+# Os pacotes completos (.app/.dmg/.AppImage) ficam no workflow "release".
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Payload (ffmpeg + exiftool)
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File pack.ps1 -DownloadExifTool
+      - name: Compilar
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File build.ps1
+      - name: Testes de remocao de metadados
+        shell: bash
+        run: bash tests/run_tests.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SemRastro-windows
+          path: SemRastro.exe
+
+  desktop-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Restaurar (modo travado pelo packages.lock.json)
+        run: dotnet restore src/SemRastro.Desktop --locked-mode
+      - name: Compilar (Avalonia, macOS/Linux)
+        run: dotnet build src/SemRastro.Desktop -c Release --no-restore

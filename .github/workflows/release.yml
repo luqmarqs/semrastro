@@ -1,0 +1,207 @@
+# Monta os pacotes de todas as plataformas e, numa tag "v*", cria uma release
+# EM RASCUNHO com todos os instaladores e um unico SHA256SUMS.txt.
+#
+#   Validar sem publicar:  Actions > release > Run workflow   (workflow_dispatch)
+#   Publicar:              git tag v1.0.0 && git push origin v1.0.0
+#                          -> release em rascunho; revise e clique em "Publish" no GitHub.
+#
+# Runners padrao do GitHub (documentacao actions/runner-images, set/2026):
+#   windows-latest      x64          -> SemRastro.exe (WinForms, csc do .NET Framework)
+#   macos-15            Apple Silicon -> SemRastro.app arm64 e x64 (dotnet publish e cross;
+#                                       o x64 e testado sob Rosetta no mesmo runner)
+#   ubuntu-22.04        x86_64       -> AppImage x86_64 (glibc 2.35 no build; o .NET
+#                                       self-contained e o ffmpeg estatico nao herdam a glibc do runner)
+#   ubuntu-22.04-arm    aarch64      -> AppImage aarch64 (gratuito em repositorio publico)
+#
+# Sem certificados, sem notarizacao, sem segredos: so GITHUB_TOKEN, e escrita de
+# conteudo apenas no job que cria o rascunho.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF#refs/tags/v}"
+          else v="$(tr -d '[:space:]' < version.txt)-dev.$GITHUB_RUN_NUMBER"; fi
+          echo "version=$v" | tee -a "$GITHUB_OUTPUT"
+
+  windows:
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Payload (ffmpeg + exiftool)
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File pack.ps1 -DownloadExifTool
+      - name: Compilar
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File build.ps1
+      - name: Testes de remocao de metadados
+        shell: bash
+        run: bash tests/run_tests.sh
+      - name: Renomear com versao
+        shell: bash
+        run: mkdir -p dist && cp SemRastro.exe "dist/SemRastro-${{ needs.version.outputs.version }}-windows-x64.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*.exe
+          if-no-files-found: error
+
+  macos:
+    needs: version
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Restaurar (modo travado pelo packages.lock.json)
+        run: dotnet restore src/SemRastro.Desktop --locked-mode
+      - name: create-dmg (layout do instalador)
+        run: brew install create-dmg || true
+      - name: Rosetta (para testar o build x64 neste runner arm64)
+        run: sudo softwareupdate --install-rosetta --agree-to-license || true
+      - name: Build .app arm64 e x64
+        run: |
+          chmod +x packaging/*.sh packaging/macos/*.sh
+          packaging/macos/build-app.sh arm64 "${{ needs.version.outputs.version }}"
+          packaging/macos/build-app.sh x64   "${{ needs.version.outputs.version }}"
+      - name: Testes de remocao no .app arm64 (nativo)
+        run: bash tests/run_tests_unix.sh build/macos/arm64/SemRastro.app/Contents/MacOS/SemRastro
+      - name: Testes de remocao no .app x64 (Rosetta)
+        run: |
+          if arch -x86_64 /usr/bin/true 2>/dev/null; then
+            bash tests/run_tests_unix.sh arch -x86_64 build/macos/x64/SemRastro.app/Contents/MacOS/SemRastro
+          else echo "::warning::Rosetta indisponivel; build x64 nao executado neste runner"; fi
+      - name: Abertura da interface (arm64) + screenshot
+        run: |
+          set -x
+          cp -R build/macos/arm64/SemRastro.app /tmp/SemRastro.app
+          open -a /tmp/SemRastro.app
+          sleep 8
+          pgrep -f SemRastro.app/Contents/MacOS/SemRastro && echo "janela aberta (processo vivo)"
+          mkdir -p screenshots && screencapture -x screenshots/macos-arm64.png || true
+          pkill -f SemRastro.app/Contents/MacOS/SemRastro || true
+      - name: DMGs
+        run: |
+          packaging/macos/build-dmg.sh arm64 "${{ needs.version.outputs.version }}"
+          packaging/macos/build-dmg.sh x64   "${{ needs.version.outputs.version }}"
+      - name: Gatekeeper (informativo)
+        run: |
+          # Sem Developer ID/notarizacao o spctl reprova: e o esperado, e o README explica o "Abrir Mesmo Assim".
+          spctl --assess --type execute -v build/macos/arm64/SemRastro.app || echo "spctl: rejeitado (esperado sem notarizacao)"
+          codesign -dv --verbose=2 build/macos/arm64/SemRastro.app 2>&1 | grep -E 'Signature|Identifier|TeamIdentifier' || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/*.dmg
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
+
+  linux:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            arch: x64
+            aiarch: x86_64
+          - runner: ubuntu-22.04-arm
+            arch: arm64
+            aiarch: aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Dependencias do runner (xvfb para abrir a interface; libfuse2 para testar o AppImage montado)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb imagemagick libfuse2 file xz-utils
+      - name: Restaurar (modo travado)
+        run: dotnet restore src/SemRastro.Desktop --locked-mode
+      - name: Build AppImage ${{ matrix.aiarch }}
+        run: |
+          chmod +x packaging/*.sh packaging/linux/*.sh
+          packaging/linux/build-appimage.sh ${{ matrix.arch }} "${{ needs.version.outputs.version }}"
+      - name: Testes de remocao (AppImage, sem FUSE: --appimage-extract-and-run)
+        run: bash tests/run_tests_unix.sh dist/SemRastro-*-linux-${{ matrix.aiarch }}.AppImage --appimage-extract-and-run
+      - name: Execucao com FUSE (montado) como usuario comum
+        run: |
+          dist/SemRastro-*-linux-${{ matrix.aiarch }}.AppImage --cli --where && echo "AppImage montado via FUSE: ok"
+      - name: Abertura da interface (Xvfb) + screenshot
+        run: |
+          set -x
+          xvfb-run -a -s "-screen 0 1280x800x24" bash -c '
+            dist/SemRastro-*-linux-${{ matrix.aiarch }}.AppImage & pid=$!
+            sleep 8
+            kill -0 $pid && echo "janela aberta (processo vivo)"
+            mkdir -p screenshots && import -window root screenshots/linux-${{ matrix.aiarch }}.png || true
+            kill $pid || true'
+      - name: Distribuicao e glibc do runner (documentacao)
+        run: |
+          . /etc/os-release; echo "$PRETTY_NAME"; ldd --version | head -1
+          file dist/*.AppImage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.aiarch }}
+          path: dist/*.AppImage
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-${{ matrix.aiarch }}-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
+
+  # Um unico job cria/atualiza o rascunho: nada de jobs disputando a release.
+  release:
+    needs: [version, windows, macos, linux]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Consolidar instaladores e SHA256SUMS.txt
+        run: |
+          mkdir -p dist
+          find artifacts -type f \( -name '*.dmg' -o -name '*.AppImage' -o -name '*.exe' \) -exec cp {} dist/ \;
+          cd dist && sha256sum * | tee SHA256SUMS.txt
+      - name: Release em rascunho
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: dist/*
+          generate_release_notes: true
+          body_path: .github/release-notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

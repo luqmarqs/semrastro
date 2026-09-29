@@ -1,0 +1,36 @@
+# Binario gerado (vai para as Releases, nao para o repositorio)
+SemRastro.exe
+*.exe.antes-da-revisao
+
+# Payload, cache de download e pacotes gerados (o pack.ps1 / packaging/ regeneram)
+build/
+dist/
+
+# .NET (projeto Avalonia)
+src/**/bin/
+src/**/obj/
+*.user
+
+# Saidas de teste
+tests/t/
+tests/Harness.exe
+
+# Arquivos de midia usados em testes manuais
+*.mp4
+*.mov
+*.mkv
+*.jpg
+*.jpeg
+*.heic
+*.webp
+*.gif
+*.tif
+*.tiff
+!assets/screenshots/*.png
+
+# Editor / SO
+.vs/
+*.suo
+*.user
+Thumbs.db
+desktop.ini

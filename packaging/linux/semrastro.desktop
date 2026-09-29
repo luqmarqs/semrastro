@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SemRastro
+Comment=Remove metadados (GPS, câmera, datas, software) de vídeos e imagens
+Exec=SemRastro %F
+Icon=semrastro
+Terminal=false
+Categories=Graphics;AudioVideo;Utility;
+MimeType=video/mp4;video/quicktime;video/x-matroska;video/webm;image/jpeg;image/png;image/webp;image/tiff;image/gif;image/heic;image/avif;
+StartupWMClass=SemRastro

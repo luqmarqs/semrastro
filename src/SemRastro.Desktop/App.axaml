@@ -1,0 +1,9 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SemRastro.Desktop.App"
+             RequestedThemeVariant="Default">
+    <!-- "Default" segue o tema claro/escuro do sistema -->
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+</Application>

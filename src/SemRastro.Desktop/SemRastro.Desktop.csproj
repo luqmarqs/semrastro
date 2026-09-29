@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SemRastro para macOS e Linux (Avalonia UI, .NET 10).
+    A versao Windows continua sendo o WinForms em src/SemRastro.cs, compilado pelo
+    build.ps1; este projeto nao a substitui. O pipeline de limpeza (Core/Cleaner.cs)
+    e uma copia adaptada da classe Cleaner de la.
+
+    Build local:   dotnet build src/SemRastro.Desktop
+    Publicar:      dotnet publish src/SemRastro.Desktop -c Release -r osx-arm64 (ou osx-x64, linux-x64, linux-arm64)
+    Empacotar:     packaging/macos/build-app.sh, packaging/linux/build-appimage.sh
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>SemRastro</AssemblyName>
+    <RootNamespace>SemRastro.Desktop</RootNamespace>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+
+    <!-- Versao: sobrescrita pelos scripts com -p:Version=... (le version.txt / tag) -->
+    <Version>1.0.0</Version>
+    <Authors>Lucas Marques</Authors>
+    <Company>luqmarqs.dev</Company>
+    <Product>SemRastro</Product>
+    <Copyright>Copyright (c) 2026 Lucas Marques</Copyright>
+
+    <!-- Reprodutibilidade: packages.lock.json e obrigatorio e o CI restaura em modo travado -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+    <!-- Sem ICU: evita depender de libicu no Linux; o app nao formata datas/moedas por cultura -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <SelfContained>true</SelfContained>
+    <DebugType>none</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.22" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+  </ItemGroup>
+
+</Project>

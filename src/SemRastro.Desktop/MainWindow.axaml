@@ -1,0 +1,133 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:SemRastro.Desktop"
+        x:Class="SemRastro.Desktop.MainWindow"
+        Title="SemRastro"
+        Width="820" Height="660" MinWidth="700" MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        Icon="/Assets/semrastro.png"
+        DragDrop.AllowDrop="True">
+
+    <Window.Styles>
+        <!-- linha da fila -->
+        <Style Selector="Border.row">
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.row:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
+        </Style>
+        <Style Selector="Button.remove">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="6,2" />
+            <Setter Property="Opacity" Value="0.55" />
+        </Style>
+        <Style Selector="Button.remove:pointerover">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="TextBlock.caption">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="28,20,28,14" RowDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
+
+        <!-- cabecalho -->
+        <StackPanel Grid.Row="0" Spacing="2">
+            <TextBlock Text="SemRastro" FontSize="22" FontWeight="SemiBold" />
+            <TextBlock Name="Subtitle" Opacity="0.75"
+                       Text="Remove GPS, câmera, datas, software e outros rastros de vídeos e imagens. Nada sai do seu computador." />
+        </StackPanel>
+
+        <!-- aviso de dependencias (so aparece quando falta algo) -->
+        <Border Grid.Row="1" Name="DepBar" IsVisible="False" Margin="0,16,0,0" Padding="14,10" CornerRadius="6"
+                Background="#33E0B000">
+            <DockPanel>
+                <Button Name="DepHelp" DockPanel.Dock="Right" Content="Como resolver" Click="OnDepHelp" />
+                <TextBlock Name="DepText" VerticalAlignment="Center" TextWrapping="Wrap" />
+            </DockPanel>
+        </Border>
+
+        <!-- area de soltar -->
+        <Grid Grid.Row="2" Name="DropZone" Margin="0,18,0,0" Height="150" Cursor="Hand"
+              Background="Transparent" PointerReleased="OnPickFiles">
+            <Rectangle Name="DropOutline" RadiusX="8" RadiusY="8" StrokeThickness="1"
+                       StrokeDashArray="4,3" Stroke="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                       Fill="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+            <StackPanel Name="DropContent" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
+                <PathIcon Width="30" Height="30" Opacity="0.55"
+                          Data="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM12 11l4 4h-3v4h-2v-4H8l4-4z" />
+                <TextBlock Name="DropTitle" Text="Arraste vídeos ou imagens aqui" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                <TextBlock Name="DropSub" Classes="caption" Opacity="0.7" HorizontalAlignment="Center"
+                           Text="ou clique para escolher  ·  pode soltar vários de uma vez, ou uma pasta inteira" />
+            </StackPanel>
+            <Button Name="ClearButton" Content="Limpar lista" IsVisible="False" Click="OnClearList"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0" Background="Transparent" />
+        </Grid>
+
+        <!-- fila -->
+        <Border Grid.Row="3" Name="ListCard" IsVisible="False" Margin="0,12,0,0" CornerRadius="8" BorderThickness="1"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+            <ScrollViewer Padding="4">
+                <ItemsControl Name="List">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="local:FileItem">
+                            <Border Classes="row">
+                                <Grid ColumnDefinitions="34,*,Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+                                    <PathIcon Grid.RowSpan="2" Width="20" Height="20" Opacity="0.7" VerticalAlignment="Center" IsVisible="{Binding IsVideo}"
+                                              Data="M3 6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3.5l4-2.5v10l-4-2.5V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                                    <PathIcon Grid.RowSpan="2" Width="20" Height="20" Opacity="0.7" VerticalAlignment="Center" IsVisible="{Binding IsImage}"
+                                              Data="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 2v10.5l4.5-5 3.5 4 2.5-2.5L19 16.5V6H5zm11 2.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="1" Grid.Row="1" Classes="caption" Text="{Binding SubText}" Foreground="{Binding SubBrush}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="2" Grid.RowSpan="2" Text="{Binding StatusText}" Foreground="{Binding StatusBrush}"
+                                               FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="12,0" />
+                                    <Button Grid.Column="3" Grid.RowSpan="2" Classes="remove" Content="✕" VerticalAlignment="Center"
+                                            IsVisible="{Binding CanRemove}" Click="OnRemoveRow" Tag="{Binding}" />
+                                    <ProgressBar Grid.Row="2" Grid.ColumnSpan="4" Height="3" Margin="0,6,0,0" Minimum="0" Maximum="100"
+                                                 Value="{Binding Percent}" IsVisible="{Binding IsRunning}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- opcoes -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="10" Margin="0,14,0,0">
+            <TextBlock Name="VideoLabel" Text="Vídeo" VerticalAlignment="Center" Opacity="0.8" IsVisible="False" />
+            <ComboBox Name="VideoQuality" Width="200" SelectedIndex="1" IsVisible="False">
+                <ComboBoxItem Content="Máxima (CRF 14, lento)" />
+                <ComboBoxItem Content="Alta (CRF 18)" />
+                <ComboBoxItem Content="Média (CRF 23, rápido)" />
+            </ComboBox>
+            <TextBlock Name="ImageLabel" Text="Imagem" VerticalAlignment="Center" Opacity="0.8" Margin="14,0,0,0" IsVisible="False" />
+            <ComboBox Name="ImageMode" Width="240" SelectedIndex="1" IsVisible="False">
+                <ComboBoxItem Content="Recodificar (máxima)" />
+                <ComboBoxItem Content="Recodificar" />
+                <ComboBoxItem Content="Sem perda (só metadados)" />
+            </ComboBox>
+        </StackPanel>
+
+        <!-- acao -->
+        <Grid Grid.Row="5" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,14,0,0">
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="6" Margin="0,0,16,0">
+                <ProgressBar Name="Progress" Height="4" Minimum="0" Maximum="100" Value="0" />
+                <TextBlock Name="StatusText" Classes="caption" Text="Pronto." Opacity="0.85" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Button Grid.Column="1" Name="DetailsButton" Content="Detalhes ▾" Background="Transparent" Click="OnToggleDetails" Margin="0,0,8,0" />
+            <Button Grid.Column="2" Name="FolderButton" Content="Abrir pasta" IsEnabled="False" Click="OnOpenFolder" Margin="0,0,8,0" />
+            <Button Grid.Column="3" Name="RunButton" Classes="accent" Content="Limpar metadados" IsEnabled="False" Click="OnRun" MinWidth="170" />
+        </Grid>
+
+        <!-- detalhes (log) -->
+        <TextBox Grid.Row="6" Name="Log" IsVisible="False" Margin="0,12,0,0" Height="190" IsReadOnly="True"
+                 AcceptsReturn="True" TextWrapping="NoWrap" FontFamily="Menlo, SF Mono, DejaVu Sans Mono, Consolas, monospace" FontSize="12" />
+
+        <!-- rodape -->
+        <TextBlock Grid.Row="7" Name="Footer" Classes="caption" Opacity="0.6" Margin="0,10,0,0" TextTrimming="CharacterEllipsis" />
+    </Grid>
+</Window>

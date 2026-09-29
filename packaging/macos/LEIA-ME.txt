@@ -1,0 +1,16 @@
+SemRastro para macOS
+
+1. Arraste o SemRastro.app para a pasta Applications (Aplicativos) ao lado.
+2. Ejete este disco.
+3. Abra o SemRastro pela pasta Aplicativos ou pelo Launchpad.
+
+Primeira abertura: este app nao e assinado com Developer ID nem notarizado
+pela Apple. O macOS vai avisar que nao consegue verificar o desenvolvedor.
+Feche o aviso, abra Ajustes do Sistema > Privacidade e Seguranca, role ate
+o aviso sobre o SemRastro e clique em "Abrir Mesmo Assim". So precisa fazer
+isso uma vez.
+
+Se a mensagem for "esta danificado" ou de malware, NAO force a abertura:
+confira o hash SHA-256 do .dmg na pagina de Releases e baixe de novo.
+
+Codigo-fonte e verificacao: https://github.com/luqmarqs/semrastro
