@@ -13,9 +13,14 @@
 set -u
 APP=("$@")
 [ ${#APP[@]} -gt 0 ] || { echo "uso: $0 <app> [args]"; exit 64; }
+# O script troca de pasta mais abaixo: qualquer argumento que seja um arquivo
+# existente (o binario, o AppImage, mesmo depois de "arch -x86_64") vira absoluto.
+for i in "${!APP[@]}"; do
+  if [ -e "${APP[$i]}" ]; then APP[$i]="$(cd "$(dirname "${APP[$i]}")" && pwd)/$(basename "${APP[$i]}")"; fi
+done
 
 # ferramentas de inspecao: as mesmas embutidas no pacote (exiftool le; ffmpeg gera as amostras)
-eval "$("${APP[@]}" --cli --where | sed 's/^/T_/')"
+eval "$("${APP[@]}" --cli --where | sed "s/^\([a-z]*\)=\(.*\)$/T_\1='\2'/")"   # valores entre aspas: caminhos com espaco
 FF="$T_ffmpeg"; ET_SCRIPT="$T_exiftool"; PERL="$T_perl"
 [ -x "$FF" ] || { echo "ffmpeg nao localizado pelo app: '$FF'"; exit 1; }
 [ -f "$ET_SCRIPT" ] || { echo "exiftool nao localizado pelo app"; exit 1; }

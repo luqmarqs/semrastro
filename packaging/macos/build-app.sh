@@ -52,10 +52,15 @@ done | head -5
 echo "== assinatura ad hoc (sem Developer ID, sem notarizacao)"
 # Assina cada Mach-O e depois o bundle. Sem --options runtime: o .NET usa JIT e
 # o hardened runtime exigiria entitlements; ad hoc + hardened nao traz ganho aqui.
-find "$APP/Contents" -type f \( -name '*.dylib' -o -perm -u+x \) -print0 | while IFS= read -r -d '' f; do
-  if file "$f" | grep -q 'Mach-O'; then codesign --force --sign - --timestamp=none "$f" 2>/dev/null; fi
+# O codesign recusa arquivos com atributos estendidos ("detritus"): limpa antes.
+xattr -cr "$APP" 2>/dev/null || true
+find "$APP/Contents" -type f -print0 | while IFS= read -r -d '' f; do
+  case "$f" in *"/MacOS/SemRastro") continue;; esac      # o executavel principal vai com o bundle
+  if file -b "$f" | grep -q 'Mach-O'; then
+    codesign --force --sign - "$f" || echo "AVISO: codesign falhou em ${f#$APP/}"
+  fi
 done
-codesign --force --sign - --timestamp=none "$APP"
+codesign --force --sign - "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
 echo "codesign: ok (ad hoc)"
 
