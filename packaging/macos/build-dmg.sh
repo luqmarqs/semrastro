@@ -38,6 +38,8 @@ if command -v create-dmg >/dev/null 2>&1; then
     --no-internet-enable \
     "$DMG" "$STAGE" || { echo "create-dmg falhou; usando hdiutil"; rm -f "$DMG"; }
 fi
+# o create-dmg deixa a imagem temporaria rw.<pid>.*.dmg em dist/ se o detach demorar
+rm -f "$DIST"/rw.*.dmg
 if [ ! -f "$DMG" ]; then
   echo "== hdiutil"
   hdiutil create -volname "SemRastro $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
