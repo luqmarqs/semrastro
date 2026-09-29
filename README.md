@@ -1,5 +1,22 @@
 # SemRastro
 
+[![Release](https://img.shields.io/github/v/release/luqmarqs/semrastro?label=vers%C3%A3o&color=0078D4)](https://github.com/luqmarqs/semrastro/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/luqmarqs/semrastro/total?label=downloads&color=0078D4)](https://github.com/luqmarqs/semrastro/releases)
+[![CI](https://github.com/luqmarqs/semrastro/actions/workflows/ci.yml/badge.svg)](https://github.com/luqmarqs/semrastro/actions/workflows/ci.yml)
+[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green)](LICENSE)
+
+**Baixar a versão mais recente:**
+
+| | Download direto |
+|---|---|
+| Windows 10/11 | [**SemRastro-windows-x64.exe**](https://github.com/luqmarqs/semrastro/releases/latest/download/SemRastro-1.0.0-windows-x64.exe) |
+| macOS Apple Silicon (M1 em diante) | [**SemRastro-macos-arm64.dmg**](https://github.com/luqmarqs/semrastro/releases/latest/download/SemRastro-1.0.0-macos-arm64.dmg) |
+| macOS Intel | [**SemRastro-macos-x64.dmg**](https://github.com/luqmarqs/semrastro/releases/latest/download/SemRastro-1.0.0-macos-x64.dmg) |
+| Linux x86_64 | [**SemRastro-linux-x86_64.AppImage**](https://github.com/luqmarqs/semrastro/releases/latest/download/SemRastro-1.0.0-linux-x86_64.AppImage) |
+| Linux ARM64 | [**SemRastro-linux-aarch64.AppImage**](https://github.com/luqmarqs/semrastro/releases/latest/download/SemRastro-1.0.0-linux-aarch64.AppImage) |
+
+Todas as versões e os hashes: [página de Releases](https://github.com/luqmarqs/semrastro/releases).
+
 App de janela (Windows) que remove metadata de **vídeos e imagens**. Nasceu do
 [sanitizar-video.ps1](sanitizar-video.ps1): reencoda o arquivo do zero, apaga toda a
 metadata, neutraliza as datas do arquivo e mostra uma auditoria do resultado.
