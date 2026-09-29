@@ -372,6 +372,30 @@ namespace SemRastro
 
         int RunFfmpeg(string input, string output, int crf, string preset)
         {
+            // O ffmpeg 7.x (build Linux) grava "Lavc libx264" no campo compressor
+            // name do avc1 mesmo com o tag encoder vazio; o 9.x nao. Um segundo
+            // passo em modo copia, sem encoder no caminho, deixa o campo vazio nas
+            // duas versoes. Custa fracoes de segundo e nao toca nos pixels.
+            string temp = output + ".enc.mp4";
+            int code = RunFfmpegEncode(input, temp, crf, preset);
+            if (code != 0 || Cancelled) { TryDelete(temp); return code != 0 ? code : 1; }
+
+            Status("Reempacotando...");
+            string so, se;
+            code = RunCapture(FfmpegPath,
+                "-hide_banner -y -i \"" + temp + "\" -map 0 -c copy -map_metadata -1 -map_chapters -1"
+                + " -metadata:s:v:0 encoder= -metadata:s:a:0 encoder="
+                + " -metadata:s:v:0 handler_name= -metadata:s:a:0 handler_name="
+                + " -flags +bitexact -fflags +bitexact -movflags +faststart \"" + output + "\"",
+                out so, out se);
+            TryDelete(temp);
+            if (code != 0)
+                foreach (string line in SplitLines(se)) Log("  " + line, LogKind.Warn);
+            return code;
+        }
+
+        int RunFfmpegEncode(string input, string output, int crf, string preset)
+        {
             StringBuilder a = new StringBuilder();
             a.Append("-hide_banner -y");
             a.Append(" -i \"").Append(input).Append("\"");
@@ -387,6 +411,9 @@ namespace SemRastro
             // codificacao dentro do bitstream - fora do alcance do exiftool.
             // remove_types=6 descarta os NALs SEI; o video decodifica identico.
             a.Append(" -bsf:v filter_units=remove_types=6");
+            // bitexact: o encoder AAC deixa de gravar "Lavc..." no bitstream e o
+            // muxer deixa de gravar a versao do libavformat.
+            a.Append(" -flags +bitexact -fflags +bitexact");
             a.Append(" -c:a aac -b:a 192k");
             a.Append(" -metadata title= -metadata artist= -metadata author=");
             a.Append(" -metadata comment= -metadata copyright= -metadata description=");

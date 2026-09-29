@@ -54,11 +54,15 @@ echo "== assinatura ad hoc (sem Developer ID, sem notarizacao)"
 # o hardened runtime exigiria entitlements; ad hoc + hardened nao traz ganho aqui.
 # O codesign recusa arquivos com atributos estendidos ("detritus"): limpa antes.
 xattr -cr "$APP" 2>/dev/null || true
+# Tudo em Contents/MacOS conta como codigo para o codesign, inclusive os .dll
+# gerenciados do .NET (nao sao Mach-O, mas o bundle nao valida se ficarem sem
+# assinatura). Fora dessa pasta, so os Mach-O (ffmpeg).
 find "$APP/Contents" -type f -print0 | while IFS= read -r -d '' f; do
   case "$f" in *"/MacOS/SemRastro") continue;; esac      # o executavel principal vai com o bundle
-  if file -b "$f" | grep -q 'Mach-O'; then
-    codesign --force --sign - "$f" || echo "AVISO: codesign falhou em ${f#$APP/}"
-  fi
+  case "$f" in
+    *"/Contents/MacOS/"*) codesign --force --sign - "$f" 2>&1 | grep -v 'replacing existing signature' || true;;
+    *) if file -b "$f" | grep -q 'Mach-O'; then codesign --force --sign - "$f" 2>&1 | grep -v 'replacing existing signature' || true; fi;;
+  esac
 done
 codesign --force --sign - "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
