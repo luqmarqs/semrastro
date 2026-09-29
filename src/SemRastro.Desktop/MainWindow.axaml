@@ -3,90 +3,237 @@
         xmlns:local="using:SemRastro.Desktop"
         x:Class="SemRastro.Desktop.MainWindow"
         Title="SemRastro"
-        Width="820" Height="660" MinWidth="700" MinHeight="560"
+        Width="840" Height="680" MinWidth="720" MinHeight="580"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/semrastro.png"
+        Background="{DynamicResource SrWindow}"
         DragDrop.AllowDrop="True">
 
+    <!-- Paleta propria (Fluent 2), claro e escuro. Mesmas cores da versao Windows. -->
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="SrWindow" Color="#F3F3F3" />
+                    <SolidColorBrush x:Key="SrCard" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="SrCardHover" Color="#F7F7F7" />
+                    <SolidColorBrush x:Key="SrLayer" Color="#FBFBFB" />
+                    <SolidColorBrush x:Key="SrLayerHover" Color="#EDEDED" />
+                    <SolidColorBrush x:Key="SrBorder" Color="#E5E5E5" />
+                    <SolidColorBrush x:Key="SrBorderStrong" Color="#C8C8C8" />
+                    <SolidColorBrush x:Key="SrText" Color="#1B1B1B" />
+                    <SolidColorBrush x:Key="SrTextSecondary" Color="#5D5D5D" />
+                    <SolidColorBrush x:Key="SrTextTertiary" Color="#8A8A8A" />
+                    <SolidColorBrush x:Key="SrAccent" Color="#0067C0" />
+                    <SolidColorBrush x:Key="SrAccentSoft" Color="#160067C0" />
+                    <SolidColorBrush x:Key="SrSegSelected" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="SrLog" Color="#FAFAFA" />
+                    <SolidColorBrush x:Key="SrWarnBg" Color="#FFF4CE" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="SrWindow" Color="#202020" />
+                    <SolidColorBrush x:Key="SrCard" Color="#2B2B2B" />
+                    <SolidColorBrush x:Key="SrCardHover" Color="#323232" />
+                    <SolidColorBrush x:Key="SrLayer" Color="#262626" />
+                    <SolidColorBrush x:Key="SrLayerHover" Color="#383838" />
+                    <SolidColorBrush x:Key="SrBorder" Color="#3A3A3A" />
+                    <SolidColorBrush x:Key="SrBorderStrong" Color="#606060" />
+                    <SolidColorBrush x:Key="SrText" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="SrTextSecondary" Color="#C8C8C8" />
+                    <SolidColorBrush x:Key="SrTextTertiary" Color="#8C8C8C" />
+                    <SolidColorBrush x:Key="SrAccent" Color="#60CDFF" />
+                    <SolidColorBrush x:Key="SrAccentSoft" Color="#1C60CDFF" />
+                    <SolidColorBrush x:Key="SrSegSelected" Color="#3A3A3A" />
+                    <SolidColorBrush x:Key="SrLog" Color="#181818" />
+                    <SolidColorBrush x:Key="SrWarnBg" Color="#433519" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
     <Window.Styles>
-        <!-- linha da fila -->
+        <Style Selector="TextBlock"><Setter Property="Foreground" Value="{DynamicResource SrText}" /></Style>
+        <Style Selector="TextBlock.secondary"><Setter Property="Foreground" Value="{DynamicResource SrTextSecondary}" /></Style>
+        <Style Selector="TextBlock.tertiary"><Setter Property="Foreground" Value="{DynamicResource SrTextTertiary}" /></Style>
+        <Style Selector="TextBlock.caption"><Setter Property="FontSize" Value="12" /></Style>
+
+        <!-- botoes: primario (accent, do Fluent), secundario e sutil -->
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="16,7" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="{DynamicResource SrCard}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SrBorderStrong}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource SrText}" />
+        </Style>
+        <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SrLayerHover}" />
+        </Style>
+        <Style Selector="Button.subtle">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource SrTextSecondary}" />
+        </Style>
+        <Style Selector="Button.subtle:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SrLayerHover}" />
+            <Setter Property="Foreground" Value="{DynamicResource SrText}" />
+        </Style>
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#C42B1C" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#D5372A" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <!-- controle segmentado (ListBox horizontal) -->
+        <Style Selector="ListBox.segmented">
+            <Setter Property="Background" Value="{DynamicResource SrLayer}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SrBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="ItemsPanel">
+                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ListBox.segmented ListBoxItem">
+            <Setter Property="Padding" Value="14,4" />
+            <Setter Property="MinHeight" Value="26" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Foreground" Value="{DynamicResource SrTextSecondary}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ListBox.segmented ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SrLayerHover}" />
+        </Style>
+        <Style Selector="ListBox.segmented ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SrSegSelected}" />
+            <Setter Property="Foreground" Value="{DynamicResource SrText}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="ListBox.segmented ListBoxItem:selected:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SrSegSelected}" />
+        </Style>
+
+        <!-- area de soltar -->
+        <Style Selector="Border.drop">
+            <Setter Property="Background" Value="{DynamicResource SrCard}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Border.drop:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SrCardHover}" />
+        </Style>
+        <Style Selector="Border.drop.active">
+            <Setter Property="Background" Value="{DynamicResource SrAccentSoft}" />
+        </Style>
+
+        <!-- linhas da fila -->
         <Style Selector="Border.row">
-            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="Margin" Value="4,1" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="Border.row:pointerover">
-            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SrLayerHover}" />
         </Style>
-        <Style Selector="Button.remove">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Padding" Value="6,2" />
-            <Setter Property="Opacity" Value="0.55" />
+        <Style Selector="Border.row Button.remove">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Padding" Value="6" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Width" Value="28" />
         </Style>
-        <Style Selector="Button.remove:pointerover">
+        <Style Selector="Border.row:pointerover Button.remove">
             <Setter Property="Opacity" Value="1" />
         </Style>
-        <Style Selector="TextBlock.caption">
-            <Setter Property="FontSize" Value="12" />
+        <Style Selector="ProgressBar">
+            <Setter Property="Foreground" Value="{DynamicResource SrAccent}" />
+            <Setter Property="Background" Value="{DynamicResource SrBorder}" />
+            <Setter Property="CornerRadius" Value="2" />
+        </Style>
+        <Style Selector="PathIcon.type">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="Foreground" Value="{DynamicResource SrTextSecondary}" />
         </Style>
     </Window.Styles>
 
-    <Grid Margin="28,20,28,14" RowDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
+    <Grid Margin="28,22,28,14" RowDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
 
         <!-- cabecalho -->
-        <StackPanel Grid.Row="0" Spacing="2">
-            <TextBlock Text="SemRastro" FontSize="22" FontWeight="SemiBold" />
-            <TextBlock Name="Subtitle" Opacity="0.75"
+        <StackPanel Grid.Row="0" Spacing="3">
+            <TextBlock Text="SemRastro" FontSize="21" FontWeight="SemiBold" />
+            <TextBlock Classes="secondary" TextTrimming="CharacterEllipsis"
                        Text="Remove GPS, câmera, datas, software e outros rastros de vídeos e imagens. Nada sai do seu computador." />
         </StackPanel>
 
         <!-- aviso de dependencias (so aparece quando falta algo) -->
         <Border Grid.Row="1" Name="DepBar" IsVisible="False" Margin="0,16,0,0" Padding="14,10" CornerRadius="6"
-                Background="#33E0B000">
+                Background="{DynamicResource SrWarnBg}">
             <DockPanel>
-                <Button Name="DepHelp" DockPanel.Dock="Right" Content="Como resolver" Click="OnDepHelp" />
-                <TextBlock Name="DepText" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <Button Name="DepHelp" Classes="secondary" DockPanel.Dock="Right" Content="Como resolver" Click="OnDepHelp" />
+                <TextBlock Name="DepText" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,0" />
             </DockPanel>
         </Border>
 
         <!-- area de soltar -->
-        <Grid Grid.Row="2" Name="DropZone" Margin="0,18,0,0" Height="150" Cursor="Hand"
-              Background="Transparent" PointerReleased="OnPickFiles">
-            <Rectangle Name="DropOutline" RadiusX="8" RadiusY="8" StrokeThickness="1"
-                       StrokeDashArray="4,3" Stroke="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                       Fill="{DynamicResource SystemControlBackgroundAltHighBrush}" />
-            <StackPanel Name="DropContent" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
-                <PathIcon Width="30" Height="30" Opacity="0.55"
-                          Data="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM12 11l4 4h-3v4h-2v-4H8l4-4z" />
-                <TextBlock Name="DropTitle" Text="Arraste vídeos ou imagens aqui" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                <TextBlock Name="DropSub" Classes="caption" Opacity="0.7" HorizontalAlignment="Center"
-                           Text="ou clique para escolher  ·  pode soltar vários de uma vez, ou uma pasta inteira" />
-            </StackPanel>
-            <Button Name="ClearButton" Content="Limpar lista" IsVisible="False" Click="OnClearList"
-                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0" Background="Transparent" />
-        </Grid>
+        <Border Grid.Row="2" Name="DropZone" Classes="drop" Margin="0,18,0,0" Height="160"
+                PointerReleased="OnPickFiles">
+            <Grid>
+                <Rectangle Name="DropOutline" RadiusX="8" RadiusY="8" StrokeThickness="1" IsHitTestVisible="False"
+                           StrokeDashArray="4,3" Stroke="{DynamicResource SrBorderStrong}" Fill="Transparent" />
+                <StackPanel Name="DropContent" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" IsHitTestVisible="False">
+                    <PathIcon Name="DropIcon" Width="34" Height="34" Foreground="{DynamicResource SrTextTertiary}" HorizontalAlignment="Center"
+                              Data="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM12 11l4 4h-3v4h-2v-4H8l4-4z" />
+                    <StackPanel Name="DropTexts" Spacing="4">
+                        <TextBlock Name="DropTitle" Text="Arraste vídeos ou imagens aqui" FontWeight="SemiBold" FontSize="14" HorizontalAlignment="Center" />
+                        <TextBlock Name="DropSub" Classes="caption tertiary" HorizontalAlignment="Center"
+                                   Text="ou clique para escolher  ·  pode soltar vários de uma vez, ou uma pasta inteira" />
+                    </StackPanel>
+                </StackPanel>
+                <Button Name="ClearButton" Classes="subtle" IsVisible="False" Click="OnClearList"
+                        HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" FontSize="12">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Width="10" Height="10" Data="M4.6 3.2L10 8.6l5.4-5.4 1.4 1.4L11.4 10l5.4 5.4-1.4 1.4L10 11.4l-5.4 5.4-1.4-1.4L8.6 10 3.2 4.6z" Foreground="{DynamicResource SrTextSecondary}" />
+                        <TextBlock Text="Limpar lista" Classes="secondary" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
 
         <!-- fila -->
         <Border Grid.Row="3" Name="ListCard" IsVisible="False" Margin="0,12,0,0" CornerRadius="8" BorderThickness="1"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-            <ScrollViewer Padding="4">
+                BorderBrush="{DynamicResource SrBorder}" Background="{DynamicResource SrCard}">
+            <ScrollViewer Padding="2,4">
                 <ItemsControl Name="List">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="local:FileItem">
                             <Border Classes="row">
-                                <Grid ColumnDefinitions="34,*,Auto,Auto" RowDefinitions="Auto,Auto,Auto">
-                                    <PathIcon Grid.RowSpan="2" Width="20" Height="20" Opacity="0.7" VerticalAlignment="Center" IsVisible="{Binding IsVideo}"
+                                <Grid ColumnDefinitions="36,*,Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+                                    <PathIcon Classes="type" Grid.RowSpan="2" VerticalAlignment="Center" IsVisible="{Binding IsVideo}"
                                               Data="M3 6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3.5l4-2.5v10l-4-2.5V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
-                                    <PathIcon Grid.RowSpan="2" Width="20" Height="20" Opacity="0.7" VerticalAlignment="Center" IsVisible="{Binding IsImage}"
+                                    <PathIcon Classes="type" Grid.RowSpan="2" VerticalAlignment="Center" IsVisible="{Binding IsImage}"
                                               Data="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 2v10.5l4.5-5 3.5 4 2.5-2.5L19 16.5V6H5zm11 2.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Grid.Column="1" Grid.Row="1" Classes="caption" Text="{Binding SubText}" Foreground="{Binding SubBrush}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" TextTrimming="CharacterEllipsis" Margin="4,0,0,2" />
+                                    <TextBlock Grid.Column="1" Grid.Row="1" Classes="caption" Text="{Binding SubText}" Foreground="{Binding SubBrush}" TextTrimming="CharacterEllipsis" Margin="4,0,0,0" />
                                     <TextBlock Grid.Column="2" Grid.RowSpan="2" Text="{Binding StatusText}" Foreground="{Binding StatusBrush}"
-                                               FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="12,0" />
-                                    <Button Grid.Column="3" Grid.RowSpan="2" Classes="remove" Content="✕" VerticalAlignment="Center"
-                                            IsVisible="{Binding CanRemove}" Click="OnRemoveRow" Tag="{Binding}" />
-                                    <ProgressBar Grid.Row="2" Grid.ColumnSpan="4" Height="3" Margin="0,6,0,0" Minimum="0" Maximum="100"
+                                               FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="14,0,6,0" />
+                                    <Button Grid.Column="3" Grid.RowSpan="2" Classes="subtle remove" VerticalAlignment="Center"
+                                            IsVisible="{Binding CanRemove}" Click="OnRemoveRow" Tag="{Binding}" ToolTip.Tip="Tirar da fila">
+                                        <PathIcon Width="10" Height="10" Data="M4.6 3.2L10 8.6l5.4-5.4 1.4 1.4L11.4 10l5.4 5.4-1.4 1.4L10 11.4l-5.4 5.4-1.4-1.4L8.6 10 3.2 4.6z" Foreground="{DynamicResource SrTextSecondary}" />
+                                    </Button>
+                                    <ProgressBar Grid.Row="2" Grid.ColumnSpan="4" Height="3" Margin="4,8,0,0" Minimum="0" Maximum="100"
                                                  Value="{Binding Percent}" IsVisible="{Binding IsRunning}" />
                                 </Grid>
                             </Border>
@@ -96,38 +243,46 @@
             </ScrollViewer>
         </Border>
 
-        <!-- opcoes -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="10" Margin="0,14,0,0">
-            <TextBlock Name="VideoLabel" Text="Vídeo" VerticalAlignment="Center" Opacity="0.8" IsVisible="False" />
-            <ComboBox Name="VideoQuality" Width="200" SelectedIndex="1" IsVisible="False">
-                <ComboBoxItem Content="Máxima (CRF 14, lento)" />
-                <ComboBoxItem Content="Alta (CRF 18)" />
-                <ComboBoxItem Content="Média (CRF 23, rápido)" />
-            </ComboBox>
-            <TextBlock Name="ImageLabel" Text="Imagem" VerticalAlignment="Center" Opacity="0.8" Margin="14,0,0,0" IsVisible="False" />
-            <ComboBox Name="ImageMode" Width="240" SelectedIndex="1" IsVisible="False">
-                <ComboBoxItem Content="Recodificar (máxima)" />
-                <ComboBoxItem Content="Recodificar" />
-                <ComboBoxItem Content="Sem perda (só metadados)" />
-            </ComboBox>
+        <!-- opcoes: so o que a fila pede -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="10" Margin="0,16,0,0">
+            <TextBlock Name="VideoLabel" Classes="caption secondary" Text="Vídeo" FontWeight="SemiBold" VerticalAlignment="Center" IsVisible="False" />
+            <ListBox Name="VideoQuality" Classes="segmented" SelectedIndex="1" IsVisible="False" ToolTip.Tip="Reencodificação H.264 completa. Máxima: CRF 14, lenta. Alta: CRF 18, visualmente indistinguível do original. Média: CRF 23, rápida e menor. A saída é sempre .mp4.">
+                <ListBoxItem Content="Máxima" />
+                <ListBoxItem Content="Alta" />
+                <ListBoxItem Content="Média" />
+            </ListBox>
+            <TextBlock Name="ImageLabel" Classes="caption secondary" Text="Imagem" FontWeight="SemiBold" VerticalAlignment="Center" Margin="18,0,0,0" IsVisible="False" />
+            <ListBox Name="ImageMode" Classes="segmented" SelectedIndex="1" IsVisible="False" ToolTip.Tip="Recodificar monta um arquivo novo a partir dos pixels: container limpo, garantido. Só o JPEG perde um pouco de qualidade (PNG, WebP e TIFF são sem perda). Sem perda mantém os pixels bit a bit e só remove os metadados. HEIC, AVIF e GIF usam sempre 'Sem perda'.">
+                <ListBoxItem Content="Recodificar (máx.)" />
+                <ListBoxItem Content="Recodificar" />
+                <ListBoxItem Content="Sem perda" />
+            </ListBox>
         </StackPanel>
 
         <!-- acao -->
-        <Grid Grid.Row="5" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,14,0,0">
-            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="6" Margin="0,0,16,0">
+        <Grid Grid.Row="5" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,16,0,0">
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="7" Margin="0,0,20,0">
                 <ProgressBar Name="Progress" Height="4" Minimum="0" Maximum="100" Value="0" />
-                <TextBlock Name="StatusText" Classes="caption" Text="Pronto." Opacity="0.85" TextTrimming="CharacterEllipsis" />
+                <TextBlock Name="StatusText" Classes="caption secondary" Text="Pronto." TextTrimming="CharacterEllipsis" />
             </StackPanel>
-            <Button Grid.Column="1" Name="DetailsButton" Content="Detalhes ▾" Background="Transparent" Click="OnToggleDetails" Margin="0,0,8,0" />
-            <Button Grid.Column="2" Name="FolderButton" Content="Abrir pasta" IsEnabled="False" Click="OnOpenFolder" Margin="0,0,8,0" />
-            <Button Grid.Column="3" Name="RunButton" Classes="accent" Content="Limpar metadados" IsEnabled="False" Click="OnRun" MinWidth="170" />
+            <Button Grid.Column="1" Name="DetailsButton" Classes="subtle" Click="OnToggleDetails" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <PathIcon Name="DetailsChevron" Width="10" Height="10" Data="M2 6l8 8 8-8" Foreground="{DynamicResource SrTextSecondary}" />
+                    <TextBlock Text="Detalhes" Classes="secondary" />
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="2" Name="FolderButton" Classes="secondary" Content="Abrir pasta" IsEnabled="False" Click="OnOpenFolder" Margin="0,0,8,0" />
+            <Button Grid.Column="3" Name="RunButton" Classes="accent" Content="Limpar metadados" IsEnabled="False" Click="OnRun" MinWidth="176" FontWeight="SemiBold" />
         </Grid>
 
         <!-- detalhes (log) -->
-        <TextBox Grid.Row="6" Name="Log" IsVisible="False" Margin="0,12,0,0" Height="190" IsReadOnly="True"
-                 AcceptsReturn="True" TextWrapping="NoWrap" FontFamily="Menlo, SF Mono, DejaVu Sans Mono, Consolas, monospace" FontSize="12" />
+        <Border Grid.Row="6" Name="LogCard" IsVisible="False" Margin="0,12,0,0" CornerRadius="6" BorderThickness="1"
+                BorderBrush="{DynamicResource SrBorder}" Background="{DynamicResource SrLog}" Height="190">
+            <TextBox Name="Log" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap" BorderThickness="0" Background="Transparent"
+                     FontFamily="Menlo, SF Mono, DejaVu Sans Mono, Consolas, monospace" FontSize="12" Padding="10" />
+        </Border>
 
         <!-- rodape -->
-        <TextBlock Grid.Row="7" Name="Footer" Classes="caption" Opacity="0.6" Margin="0,10,0,0" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Row="7" Name="Footer" Classes="caption tertiary" Margin="0,12,0,0" TextTrimming="CharacterEllipsis" />
     </Grid>
 </Window>

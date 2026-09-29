@@ -150,7 +150,7 @@ jobs:
         run: |
           chmod +x packaging/*.sh packaging/linux/*.sh
           packaging/linux/build-appimage.sh ${{ matrix.arch }} "${{ needs.version.outputs.version }}"
-      - name: Testes de remocao (AppImage, sem FUSE: --appimage-extract-and-run)
+      - name: "Testes de remocao (AppImage, sem FUSE, via --appimage-extract-and-run)"
         run: bash tests/run_tests_unix.sh dist/SemRastro-*-linux-${{ matrix.aiarch }}.AppImage --appimage-extract-and-run
       - name: Execucao com FUSE (montado) como usuario comum
         run: |

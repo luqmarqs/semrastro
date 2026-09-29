@@ -93,7 +93,7 @@ namespace SemRastro.Desktop
         async void OnPickFiles(object sender, PointerReleasedEventArgs e)
         {
             if (running) return;
-            if (e.Source is Button) return;
+            if (ClearButton.IsVisible && ClearButton.IsPointerOver) return;   // clique no "Limpar lista"
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 Title = "Selecione vídeos ou imagens",
@@ -149,8 +149,15 @@ namespace SemRastro.Desktop
 
         void SetDropActive(bool active)
         {
+            object accent, border;
+            this.TryFindResource("SrAccent", ActualThemeVariant, out accent);
+            this.TryFindResource("SrBorderStrong", ActualThemeVariant, out border);
             DropOutline.StrokeDashArray = active ? null : new Avalonia.Collections.AvaloniaList<double> { 4, 3 };
-            DropOutline.Stroke = active ? (IBrush)this.FindResource("SystemControlHighlightAccentBrush") : (IBrush)this.FindResource("SystemControlForegroundBaseMediumLowBrush");
+            DropOutline.StrokeThickness = active ? 1.5 : 1;
+            DropOutline.Stroke = (IBrush)(active ? accent : border);
+            DropIcon.Foreground = active ? (IBrush)accent : (IBrush)(this.TryFindResource("SrTextTertiary", ActualThemeVariant, out border) ? border : accent);
+            if (active) { if (!DropZone.Classes.Contains("active")) DropZone.Classes.Add("active"); }
+            else DropZone.Classes.Remove("active");
             DropTitle.Text = active ? "Pode soltar" : "Arraste vídeos ou imagens aqui";
         }
 
@@ -227,11 +234,15 @@ namespace SemRastro.Desktop
             bool any = items.Count > 0;
             ListCard.IsVisible = any;
             ClearButton.IsVisible = any && !running;
-            DropZone.Height = any ? 64 : 150;
+            DropZone.Height = any ? 66 : 160;
             DropContent.Orientation = any ? Avalonia.Layout.Orientation.Horizontal : Avalonia.Layout.Orientation.Vertical;
-            DropContent.Spacing = any ? 12 : 6;
+            DropContent.Spacing = any ? 14 : 8;
             DropContent.HorizontalAlignment = any ? Avalonia.Layout.HorizontalAlignment.Left : Avalonia.Layout.HorizontalAlignment.Center;
             DropContent.Margin = any ? new Thickness(20, 0, 0, 0) : new Thickness(0);
+            DropTexts.Orientation = any ? Avalonia.Layout.Orientation.Horizontal : Avalonia.Layout.Orientation.Vertical;
+            DropTexts.Spacing = any ? 12 : 4;
+            DropTexts.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+            DropIcon.Width = DropIcon.Height = any ? 26 : 34;
             DropSub.Text = any ? "ou clique para adicionar mais" : "ou clique para escolher  ·  pode soltar vários de uma vez, ou uma pasta inteira";
 
             bool anyVideo = false, anyImage = false;
@@ -248,10 +259,12 @@ namespace SemRastro.Desktop
             {
                 RunButton.Content = "Cancelar";
                 RunButton.Classes.Remove("accent");
+                if (!RunButton.Classes.Contains("danger")) RunButton.Classes.Add("danger");
                 RunButton.IsEnabled = true;
             }
             else
             {
+                RunButton.Classes.Remove("danger");
                 if (!RunButton.Classes.Contains("accent")) RunButton.Classes.Add("accent");
                 RunButton.Content = pending <= 1 ? "Limpar metadados" : "Limpar " + pending + " arquivos";
                 RunButton.IsEnabled = pending > 0 && ToolLocator.Ffmpeg != null;
@@ -391,8 +404,8 @@ namespace SemRastro.Desktop
         void ToggleDetails()
         {
             detailsOpen = !detailsOpen;
-            DetailsButton.Content = detailsOpen ? "Detalhes ▴" : "Detalhes ▾";
-            Log.IsVisible = detailsOpen;
+            DetailsChevron.Data = StreamGeometry.Parse(detailsOpen ? "M2 14l8-8 8 8" : "M2 6l8 8 8-8");
+            LogCard.IsVisible = detailsOpen;
             if (detailsOpen) { Log.Text = logText.ToString(); Log.CaretIndex = Log.Text.Length; }
         }
 
