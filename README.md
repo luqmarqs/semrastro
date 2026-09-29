@@ -202,7 +202,43 @@ identificador e 0 das strings plantadas nos bytes (na entrada, 15 a 21 delas
 estavam presentes). No modo sem perda o hash dos pixels decodificados bate com o do
 original (JPG e TIFF 16-bit RGBA). JPEG 4:4:4 continua 4:4:4 após recodificar.
 
-Os testes estão em [tests/run_tests.sh](tests/run_tests.sh). O script compila
+### macOS e Linux: o que o CI verificou e o que falta
+
+A cada execução do workflow `release`, os pacotes prontos passam por
+[tests/run_tests_unix.sh](tests/run_tests_unix.sh), a mesma bateria de plantar e procurar
+metadados, rodando **contra o binário empacotado** (`SemRastro --cli`, o mesmo código da
+janela) com o ffmpeg e o exiftool de dentro do pacote. Resultado da execução
+[36630122294](https://github.com/luqmarqs/semrastro/actions/runs/36630122294) (2026-09-29):
+
+| Verificação | macOS arm64 (nativo, `macos-15`) | macOS x64 (Rosetta, mesmo runner) | Linux x86_64 (`ubuntu-22.04`) | Linux aarch64 (`ubuntu-22.04-arm`) |
+|---|---|---|---|---|
+| Build e empacotamento | `.app` + `.dmg` | `.app` + `.dmg` | `.AppImage` | `.AppImage` |
+| Arquiteturas do app e do ffmpeg conferidas (`file`) | arm64 / arm64 | x86_64 / x86_64 | ELF x86-64 | ELF aarch64 |
+| ffmpeg/exiftool localizados dentro do pacote | sim | sim | sim (com FUSE e com `--appimage-extract-and-run`) | sim |
+| Bateria de remoção (vídeo, JPG, PNG, WebP, TIFF, GIF, BMP, idempotência, caminho com espaço e acento) | 15/15 | 15/15 | 14/14 | 14/14 |
+| Original intacto (SHA-256 antes/depois), saída decodifica inteira | sim | sim | sim | sim |
+| Atributos estendidos (quarentena, WhereFroms) removidos da saída | sim | sim | n/a | n/a |
+| Assinatura ad hoc válida (`codesign --verify --deep --strict`) | sim | sim | n/a | n/a |
+| `.dmg` monta e contém `.app` + atalho `Applications` | sim | sim | n/a | n/a |
+| Interface abre (processo vivo após 8 s + screenshot) | sim, sessão gráfica real | não testado | sim, sob Xvfb | sim, sob Xvfb |
+| Gatekeeper (`spctl --assess`) | rejeita, como esperado sem notarização | idem | n/a | n/a |
+
+![macOS arm64 no runner](assets/screenshots/ci-macos-arm64.png)
+
+**O que ainda depende de um Mac ou de um desktop Linux de verdade** (não foi
+executado; não está aprovado):
+
+- macOS: baixar o `.dmg` pelo navegador a partir da Release, ver o aviso do Gatekeeper
+  com a quarentena real e passar pelo "Abrir Mesmo Assim"; arrastar para Aplicativos
+  pelo Finder; arrastar e soltar arquivos na janela; testar num Mac Intel nativo
+  (o x64 só rodou sob Rosetta).
+- Linux: abrir o AppImage por duplo clique num gerenciador de arquivos; arrastar e
+  soltar; distribuições além do Ubuntu 22.04 (o ffmpeg é estático, o runtime .NET
+  pede glibc 2.23+; Fedora, Debian 12, Arch e Mint devem funcionar, mas não foram
+  executados); Wayland puro (o app usa X11/XWayland).
+- Os dois: HEIC/HEIF (o CI não gera HEIC; AVIF passa no Windows).
+
+Os testes estão em [tests/run_tests.sh](tests/run_tests.sh) (Windows). O script compila
 [tests/Harness.cs](tests/Harness.cs) junto com o fonte do app e chama a classe
 `Cleaner` de verdade (sem abrir a janela), para testar o código que roda no `.exe`,
 e não uma cópia dos comandos. Termina com código de saída diferente de zero se
@@ -253,9 +289,11 @@ Quatro vazamentos reais apareceram nesses testes e foram corrigidos:
 
 Vale saber onde a ferramenta para:
 
-1. **`Lavc63.1.101`** — versão do codificador de áudio, dentro do bitstream AAC.
-   Nenhuma variação de `-bitexact` tirou. Não identifica você: é igual em todo
-   arquivo que este app produz.
+1. **`Lavc63.1.101`** — versão do codificador de áudio, dentro do bitstream AAC,
+   **na versão Windows**. Não identifica você: é igual em todo arquivo que este app
+   produz. Nas versões macOS e Linux, o pipeline roda o encode em modo `bitexact` e
+   faz um segundo passo de reempacotamento em modo cópia; com isso nem `Lavc`, nem
+   `Lavf`, nem `x264` sobram nos bytes (verificado no CI nos quatro pacotes).
 2. **`VideoHandler` / `SoundHandler`** — nomes padrão que o ffmpeg escreve.
 3. **Tabelas de quantização (DQT) do JPEG, no modo sem perda.** São impressão
    digital do codificador ou da câmera que gerou o arquivo, e sobrevivem porque os
