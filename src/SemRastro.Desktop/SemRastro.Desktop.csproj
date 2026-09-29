@@ -35,7 +35,9 @@
     <!-- Sem ICU: evita depender de libicu no Linux; o app nao formata datas/moedas por cultura -->
     <InvariantGlobalization>true</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <SelfContained>true</SelfContained>
+    <!-- Todos os RIDs no lock file: o restore em modo travado precisa do mesmo
+         packages.lock.json em Windows (dev), macOS e Linux (CI). -->
+    <RuntimeIdentifiers>win-x64;osx-arm64;osx-x64;linux-x64;linux-arm64</RuntimeIdentifiers>
     <DebugType>none</DebugType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>

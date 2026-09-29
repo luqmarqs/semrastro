@@ -78,12 +78,17 @@ inicia, Esc cancela.
 - **Ícone**: escudo branco com check em quadrado azul arredondado
   ([assets/app.ico](assets/app.ico), 16 a 256 px).
 
-## macOS (a implementar)
+## macOS e Linux (implementado em Avalonia)
 
-Mesma estrutura, mas com as convenções do Mac. O que muda:
+A versão para macOS e Linux está em `src/SemRastro.Desktop` (Avalonia UI, C#, .NET 10).
+Reproduz a mesma tela da versão Windows com uma paleta própria clara/escura (Fluent 2),
+cartões arredondados, controle segmentado, botões sutil/secundário/primário e a área de
+soltar que encolhe quando há fila. O pipeline é uma cópia adaptada da classe `Cleaner`.
 
-- **Tecnologia**: SwiftUI (nativo) ou Avalonia (reaproveita a classe `Cleaner` em
-  C#). Em qualquer caso, a lógica de limpeza é a mesma; só a camada de UI muda.
+O que ainda seria ganho numa versão nativa em SwiftUI, se um dia valer o esforço:
+
+- **Tecnologia**: SwiftUI (nativo). A lógica de limpeza continuaria a mesma; só a camada
+  de UI mudaria.
 - **Janela**: título na barra unificada (`.titlebar` com `toolbarStyle(.unified)`),
   sem o título repetido dentro da janela. O subtítulo vira a primeira linha do
   conteúdo. Fundo com material padrão da janela (`.windowBackground`), não cor
